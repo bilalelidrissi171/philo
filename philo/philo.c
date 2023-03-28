@@ -1,6 +1,5 @@
 #include "philo.h"
 
-
 size_t	ft_strlen(char *str)
 {
 	size_t i;
@@ -17,6 +16,29 @@ void	ft_error(char *str)
 	write(2, str, ft_strlen(str));
 	exit(1);
 }
+
+void	*ft_calloc(size_t count, size_t size)
+{
+	size_t	i;
+	void	*p;
+
+	i = -1;
+	if (count)
+		if (size >= i / count)
+			return (NULL);
+	if (size)
+		if (count >= i / size)
+			return (NULL);
+	p = malloc(count * size);
+	if (!p)
+		ft_error("malloc failed\n");
+	memset(p, 0, count * size);
+	if (!p)
+		ft_error("memset failed\n");
+	return (p);
+}
+
+
 
 size_t	ft_atoi(char *str)
 {
@@ -47,17 +69,10 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	if (argc < 5 && argc > 6)
 		ft_error("wrong number of arguments\n");
 	data->nop = ft_atoi(argv[1]);
-	if (data->nop > 200)
-		ft_error("number of philosophers must be at most 200\n");
 	data->tte = ft_atoi(argv[2]);
-	if (data->tte < 60)
-		ft_error("time to eat must be at least 60ms\n");
 	data->tts = ft_atoi(argv[3]);
-	if (data->tts < 60)
-		ft_error("time to sleep must be at least 60ms\n");
 	data->ttd = ft_atoi(argv[4]);
-	if (data->ttd < 60)
-		ft_error("time to die must be at least 60ms\n");
+
 	data->notepme = 0;
 	if (argc == 6)
 	{
@@ -65,17 +80,25 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 		if (data->notepme == 0)
 			ft_error("number of time each philosopher must eat must be at least 1\n");
 	}
+
 	if (data->nop == 0)
 		exit(0);
+
+	// if (data->nop > 200)
+	// 	ft_error("number of philosophers must be at most 200\n");
+	// if (data->tte < 60)
+	// 	ft_error("time to eat must be at least 60ms\n");
+	// if (data->tts < 60)
+	// 	ft_error("time to sleep must be at least 60ms\n");
+	// if (data->ttd < 60)
+	// 	ft_error("time to die must be at least 60ms\n");
 }
 
 void	ft_init(t_philo *philo, t_data *data)
 {
 	size_t i;
 
-	data->forks = malloc(sizeof(pthread_mutex_t) * data->nop);
-	if (!data->forks)
-		ft_error("malloc failed\n");
+	data->forks = ft_calloc(sizeof(pthread_mutex_t), data->nop);
 	i = 0;
 	while (i < data->nop)
 	{
@@ -172,10 +195,23 @@ void	*ft_philo(void *arg)
 	return (NULL);
 }
 
+void *is_dead(void *arg)
+{
+	t_philo *philo;
 
-
-
-
+	philo = (t_philo *)arg;
+	while (1)
+	{
+		if (ft_get_time() - philo->last_eat > philo->data.ttd)
+		{
+			pthread_mutex_lock(&philo->print_msg);
+			printf("%zu %zu died\n", ft_get_time() - philo->start, philo->id);
+			pthread_mutex_unlock(&philo->print_msg);
+			exit(0);
+		}
+	}
+	return (NULL);
+}
 
 
 int	main(int argc, char **argv)
@@ -186,16 +222,24 @@ int	main(int argc, char **argv)
 
 	ft_parsing(argc, argv, &data);
 
-	philo = (t_philo *)malloc(sizeof(t_philo) * data.nop);
-	if (!philo)
-		ft_error("malloc error\n");
+	philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
 
 	ft_init(philo, &data);
+
+	// printf("data.nop = %zu, data.tte = %zu, data.ttd = %zu, data.tts = %zu, data.meals = %zu\n", data.nop, data.tte, data.ttd, data.tts, data.notepme);
+
+	exit(0);
+
+
+
+
 
 	i = 0;
 	while (i < data.nop)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
+			ft_error("pthread_create error\n");
+		if (pthread_create(&philo[i].d, NULL, &is_dead, &philo[i]))
 			ft_error("pthread_create error\n");
 		i++;
 	}
@@ -204,6 +248,8 @@ int	main(int argc, char **argv)
 	while (i < data.nop)
 	{
 		if (pthread_join(philo[i].t, NULL))
+			ft_error("pthread_join error\n");
+		if (pthread_join(philo[i].d, NULL))
 			ft_error("pthread_join error\n");
 		i++;
 	}
