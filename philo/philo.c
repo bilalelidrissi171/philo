@@ -73,18 +73,20 @@ void	ft_init(t_philo *philo, t_data *data)
 {
 	size_t i;
 
+	data->forks = malloc(sizeof(pthread_mutex_t) * data->nop);
+	if (!data->forks)
+		ft_error("malloc failed\n");
 	i = 0;
 	while (i < data->nop)
 	{
 		philo[i].id = i + 1;
 		philo[i].start = 0;
 		philo[i].last_eat = 0;
-		philo[i].is_dead = 0;
 		philo[i].data = *data;
 		pthread_mutex_init(&data->forks[i], NULL);
 		pthread_mutex_init(&philo[i].eat, NULL);
 		pthread_mutex_init(&philo[i].print_msg, NULL);
-		pthread_mutex_init(&philo[i].is_death, NULL);
+		pthread_mutex_init(&philo[i].is_dead, NULL);
 		i++;
 	}
 	i = 0;
@@ -139,6 +141,7 @@ void	*ft_philo(void *arg)
 	{
 		if (philo->id % 2 == 0)
 			ft_usleep(1);
+
 		pthread_mutex_lock(philo->left_fork);
 		pthread_mutex_lock(&philo->print_msg);
 		printf("%zu %zu has taken a fork\n", ft_get_time() - philo->start, philo->id);
@@ -150,6 +153,7 @@ void	*ft_philo(void *arg)
 		pthread_mutex_lock(&philo->eat);
 		philo->last_eat = ft_get_time();
 		pthread_mutex_lock(&philo->print_msg);
+		philo->last_eat = ft_get_time();
 		printf("%zu %zu is eating\n", ft_get_time() - philo->start, philo->id);
 		pthread_mutex_unlock(&philo->print_msg);
 		ft_usleep(philo->data.tte);
@@ -163,9 +167,12 @@ void	*ft_philo(void *arg)
 		pthread_mutex_lock(&philo->print_msg);
 		printf("%zu %zu is thinking\n", ft_get_time() - philo->start, philo->id);
 		pthread_mutex_unlock(&philo->print_msg);
+
 	}
 	return (NULL);
 }
+
+
 
 
 
@@ -188,7 +195,7 @@ int	main(int argc, char **argv)
 	i = 0;
 	while (i < data.nop)
 	{
-		if (pthread_create(&philo[i].t, NULL, ft_philo, &philo[i]))
+		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
 			ft_error("pthread_create error\n");
 		i++;
 	}
@@ -200,7 +207,6 @@ int	main(int argc, char **argv)
 			ft_error("pthread_join error\n");
 		i++;
 	}
-
 
 	free(philo);
 

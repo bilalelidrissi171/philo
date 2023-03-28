@@ -24,16 +24,16 @@ typedef struct s_data
 typedef struct s_philo
 {
 	pthread_t t;
+	pthread_t d;
 	size_t id; // id of the philosopher
 	size_t start; // time when the philosopher started
 	size_t last_eat; // time when the philosopher last ate
-	size_t is_dead; // is the philosopher dead
 	t_data data; // data
 	pthread_mutex_t *left_fork; // left fork
 	pthread_mutex_t *right_fork; // right fork
 	pthread_mutex_t eat; // eat
 	pthread_mutex_t print_msg; // print
-	pthread_mutex_t is_death; // death
+	pthread_mutex_t is_dead; // is dead
 
 }				t_philo;
 
