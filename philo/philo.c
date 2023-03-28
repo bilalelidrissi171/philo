@@ -42,10 +42,11 @@ void	*ft_calloc(size_t count, size_t size)
 
 size_t	ft_atoi(char *str)
 {
-	size_t	i;
-	size_t	res;
-	size_t	temp;
+	int	i;
+	int	res;
+	int	temp;
 
+	res = 0;
 	i = 0;
 	while (str[i] == ' ')
 		i++;
@@ -64,6 +65,7 @@ size_t	ft_atoi(char *str)
 	return (res);
 }
 
+
 void	ft_parsing(int argc, char **argv, t_data *data)
 {
 	if (argc < 5 && argc > 6)
@@ -72,7 +74,6 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	data->tte = ft_atoi(argv[2]);
 	data->tts = ft_atoi(argv[3]);
 	data->ttd = ft_atoi(argv[4]);
-
 	data->notepme = 0;
 	if (argc == 6)
 	{
@@ -80,18 +81,12 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 		if (data->notepme == 0)
 			ft_error("number of time each philosopher must eat must be at least 1\n");
 	}
-
 	if (data->nop == 0)
 		exit(0);
-
-	// if (data->nop > 200)
-	// 	ft_error("number of philosophers must be at most 200\n");
-	// if (data->tte < 60)
-	// 	ft_error("time to eat must be at least 60ms\n");
-	// if (data->tts < 60)
-	// 	ft_error("time to sleep must be at least 60ms\n");
-	// if (data->ttd < 60)
-	// 	ft_error("time to die must be at least 60ms\n");
+	if (data->nop > 200)
+		ft_error("number of philosophers must be at most 200\n");
+	if (data->tte < 60 || data->tts < 60 || data->ttd < 60)
+		ft_error("time must be at least 60ms\n");
 }
 
 void	ft_init(t_philo *philo, t_data *data)
@@ -109,7 +104,9 @@ void	ft_init(t_philo *philo, t_data *data)
 		pthread_mutex_init(&data->forks[i], NULL);
 		pthread_mutex_init(&philo[i].eat, NULL);
 		pthread_mutex_init(&philo[i].print_msg, NULL);
-		pthread_mutex_init(&philo[i].is_dead, NULL);
+		pthread_mutex_init(&philo[i].notepme_mutex, NULL);
+		pthread_mutex_init(&philo[i].is_dead_mutex, NULL);
+
 		i++;
 	}
 	i = 0;
@@ -135,7 +132,7 @@ void	ft_init(t_philo *philo, t_data *data)
 
 }
 
-size_t	ft_get_time(void)
+int	ft_get_time(void)
 {
 	struct timeval tv;
 
@@ -159,56 +156,52 @@ void	*ft_philo(void *arg)
 
 	philo = (t_philo *)arg;
 	philo->start = ft_get_time();
-	philo->last_eat = philo->start;
+	philo->last_eat = ft_get_time();
+	if (philo->id % 2 == 0)
+		ft_usleep(1);
 	while (1)
 	{
-		if (philo->id % 2 == 0)
-			ft_usleep(1);
-
 		pthread_mutex_lock(philo->left_fork);
 		pthread_mutex_lock(&philo->print_msg);
-		printf("%zu %zu has taken a fork\n", ft_get_time() - philo->start, philo->id);
+		printf("%d %d has taken a fork\n", ft_get_time() - philo->start, philo->id);
 		pthread_mutex_unlock(&philo->print_msg);
 		pthread_mutex_lock(philo->right_fork);
 		pthread_mutex_lock(&philo->print_msg);
-		printf("%zu %zu has taken a fork\n", ft_get_time() - philo->start, philo->id);
+		printf("%d %d has taken a fork\n", ft_get_time() - philo->start, philo->id);
 		pthread_mutex_unlock(&philo->print_msg);
 		pthread_mutex_lock(&philo->eat);
-		philo->last_eat = ft_get_time();
 		pthread_mutex_lock(&philo->print_msg);
+		pthread_mutex_lock(&philo->notepme_mutex);
+		printf("%d %d is eating\n", ft_get_time() - philo->start, philo->id);
 		philo->last_eat = ft_get_time();
-		printf("%zu %zu is eating\n", ft_get_time() - philo->start, philo->id);
+		philo->data.notepme--;
+		printf("id %d notepme %d\n", philo->id, philo->data.notepme);
+		if (philo->data.notepme == 0 && philo->id == philo->data.nop)
+		{
+			pthread_mutex_unlock(&philo->print_msg);
+			pthread_mutex_unlock(&philo->eat);
+			pthread_mutex_unlock(philo->right_fork);
+			pthread_mutex_unlock(philo->left_fork);
+			pthread_mutex_unlock(&philo->notepme_mutex);
+			exit(0);
+		}
+		pthread_mutex_unlock(&philo->notepme_mutex);
 		pthread_mutex_unlock(&philo->print_msg);
 		ft_usleep(philo->data.tte);
 		pthread_mutex_unlock(&philo->eat);
 		pthread_mutex_unlock(philo->right_fork);
 		pthread_mutex_unlock(philo->left_fork);
 		pthread_mutex_lock(&philo->print_msg);
-		printf("%zu %zu is sleeping\n", ft_get_time() - philo->start, philo->id);
+		printf("%d %d is sleeping\n", ft_get_time() - philo->start, philo->id);
 		pthread_mutex_unlock(&philo->print_msg);
 		ft_usleep(philo->data.tts);
 		pthread_mutex_lock(&philo->print_msg);
-		printf("%zu %zu is thinking\n", ft_get_time() - philo->start, philo->id);
+		printf("%d %d is thinking\n", ft_get_time() - philo->start, philo->id);
 		pthread_mutex_unlock(&philo->print_msg);
 
-	}
-	return (NULL);
-}
 
-void *is_dead(void *arg)
-{
-	t_philo *philo;
 
-	philo = (t_philo *)arg;
-	while (1)
-	{
-		if (ft_get_time() - philo->last_eat > philo->data.ttd)
-		{
-			pthread_mutex_lock(&philo->print_msg);
-			printf("%zu %zu died\n", ft_get_time() - philo->start, philo->id);
-			pthread_mutex_unlock(&philo->print_msg);
-			exit(0);
-		}
+
 	}
 	return (NULL);
 }
@@ -223,12 +216,8 @@ int	main(int argc, char **argv)
 	ft_parsing(argc, argv, &data);
 
 	philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
-
 	ft_init(philo, &data);
 
-	// printf("data.nop = %zu, data.tte = %zu, data.ttd = %zu, data.tts = %zu, data.meals = %zu\n", data.nop, data.tte, data.ttd, data.tts, data.notepme);
-
-	exit(0);
 
 
 
@@ -239,8 +228,6 @@ int	main(int argc, char **argv)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
 			ft_error("pthread_create error\n");
-		if (pthread_create(&philo[i].d, NULL, &is_dead, &philo[i]))
-			ft_error("pthread_create error\n");
 		i++;
 	}
 
@@ -248,8 +235,6 @@ int	main(int argc, char **argv)
 	while (i < data.nop)
 	{
 		if (pthread_join(philo[i].t, NULL))
-			ft_error("pthread_join error\n");
-		if (pthread_join(philo[i].d, NULL))
 			ft_error("pthread_join error\n");
 		i++;
 	}
