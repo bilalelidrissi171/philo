@@ -172,10 +172,23 @@ void	*ft_philo(void *arg)
 		pthread_mutex_lock(&philo->eat);
 		pthread_mutex_lock(&philo->print_msg);
 		pthread_mutex_lock(&philo->notepme_mutex);
+		pthread_mutex_lock(&philo->is_dead_mutex);
+		// if (ft_get_time() - philo->last_eat > philo->data.ttd)
+		// {
+		// 	printf("%d %d died\n", ft_get_time() - philo->start, philo->id);
+		// 	pthread_mutex_unlock(&philo->print_msg);
+		// 	pthread_mutex_unlock(&philo->eat);
+		// 	pthread_mutex_unlock(philo->right_fork);
+		// 	pthread_mutex_unlock(philo->left_fork);
+		// 	pthread_mutex_unlock(&philo->notepme_mutex);
+		// 	pthread_mutex_unlock(&philo->is_dead_mutex);
+		// 	exit(0);
+		// }
 		printf("%d %d is eating\n", ft_get_time() - philo->start, philo->id);
+		// dead
+
 		philo->last_eat = ft_get_time();
 		philo->data.notepme--;
-		printf("id %d notepme %d\n", philo->id, philo->data.notepme);
 		if (philo->data.notepme == 0 && philo->id == philo->data.nop)
 		{
 			pthread_mutex_unlock(&philo->print_msg);
@@ -183,8 +196,10 @@ void	*ft_philo(void *arg)
 			pthread_mutex_unlock(philo->right_fork);
 			pthread_mutex_unlock(philo->left_fork);
 			pthread_mutex_unlock(&philo->notepme_mutex);
+			pthread_mutex_unlock(&philo->is_dead_mutex);
 			exit(0);
 		}
+		pthread_mutex_unlock(&philo->is_dead_mutex);
 		pthread_mutex_unlock(&philo->notepme_mutex);
 		pthread_mutex_unlock(&philo->print_msg);
 		ft_usleep(philo->data.tte);
@@ -198,10 +213,6 @@ void	*ft_philo(void *arg)
 		pthread_mutex_lock(&philo->print_msg);
 		printf("%d %d is thinking\n", ft_get_time() - philo->start, philo->id);
 		pthread_mutex_unlock(&philo->print_msg);
-
-
-
-
 	}
 	return (NULL);
 }
@@ -216,10 +227,8 @@ int	main(int argc, char **argv)
 	ft_parsing(argc, argv, &data);
 
 	philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
+	
 	ft_init(philo, &data);
-
-
-
 
 
 
@@ -236,6 +245,17 @@ int	main(int argc, char **argv)
 	{
 		if (pthread_join(philo[i].t, NULL))
 			ft_error("pthread_join error\n");
+		i++;
+	}
+
+	i = 0;
+	while (i < data.nop)
+	{
+		pthread_mutex_destroy(&data.forks[i]);
+		pthread_mutex_destroy(&philo[i].eat);
+		pthread_mutex_destroy(&philo[i].print_msg);
+		pthread_mutex_destroy(&philo[i].notepme_mutex);
+		pthread_mutex_destroy(&philo[i].is_dead_mutex);
 		i++;
 	}
 

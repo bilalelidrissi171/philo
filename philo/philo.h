@@ -35,7 +35,6 @@ typedef struct s_philo
 	pthread_mutex_t print_msg; // print
 	pthread_mutex_t notepme_mutex; // number of time each philosopher must eat
 	pthread_mutex_t is_dead_mutex; // is dead
-
 }				t_philo;
 
 
