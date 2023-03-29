@@ -7,6 +7,7 @@
 # include <unistd.h>
 # include <sys/time.h>
 # include <pthread.h>
+# include <limits.h>
 
 typedef struct s_data
 {
@@ -27,10 +28,12 @@ typedef struct s_philo
 	int id; // id of the philosopher
 	int start; // time when the philosopher started
 	int last_eat; // time when the philosopher last ate
+	int is_dead; // is the philosopher dead
 	t_data data; // data
 	pthread_mutex_t last_eat_mutex; // eat
 	pthread_mutex_t notepme_mutex; // number of time each philosopher must eat
 	pthread_mutex_t print_msg_mutex; // print message
+	pthread_mutex_t *is_dead_mutex; // is the philosopher dead
 }				t_philo;
 
 
