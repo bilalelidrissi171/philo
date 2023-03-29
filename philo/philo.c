@@ -38,6 +38,24 @@ void	*ft_calloc(size_t count, size_t size)
 	return (p);
 }
 
+void ft_free_exit(t_philo *philo, t_data *data)
+{
+	size_t i;
+
+	i = 0;
+	while (i < data->nop)
+	{
+		pthread_mutex_destroy(&data->forks[i]);
+		pthread_mutex_destroy(&philo[i].last_eat_mutex);
+		pthread_mutex_destroy(&philo[i].print_msg_mutex);
+		pthread_mutex_destroy(&philo[i].notepme_mutex);
+		printf("destroyed mutex %zu\n", i);
+		i++;
+	}
+	free(data->forks);
+	// free(philo);
+	exit(0);
+}
 
 
 size_t	ft_atoi(char *str)
@@ -105,6 +123,7 @@ void	ft_init(t_philo *philo, t_data *data)
 		pthread_mutex_init(&philo[i].last_eat_mutex, NULL);
 		pthread_mutex_init(&philo[i].print_msg_mutex, NULL);
 		pthread_mutex_init(&philo[i].notepme_mutex, NULL);
+		printf("initialized mutex %zu\n", i);
 		i++;
 	}
 
@@ -149,7 +168,7 @@ void	ft_dest_forks(t_philo *philo)
 	pthread_mutex_unlock(&philo->data.forks[philo->id % philo->data.nop]);
 }
 
-void ft_eating(t_philo *philo)
+int ft_eating(t_philo *philo)
 {
 	pthread_mutex_lock(&philo->last_eat_mutex);
 	pthread_mutex_lock(&philo->notepme_mutex);
@@ -160,11 +179,12 @@ void ft_eating(t_philo *philo)
 	{
 		pthread_mutex_unlock(&philo->notepme_mutex);
 		pthread_mutex_unlock(&philo->last_eat_mutex);
-		exit(0);
+		return (1);
 	}
 	ft_usleep(philo->data.tte);
 	pthread_mutex_unlock(&philo->notepme_mutex);
 	pthread_mutex_unlock(&philo->last_eat_mutex);
+	return (0);
 }
 
 void ft_sleeping(t_philo *philo)
@@ -197,10 +217,11 @@ void	*ft_philo(void *arg)
 		usleep(50);
 	while (1)
 	{
-		if (ft_get_time() - philo->last_eat - 80 > philo->data.ttd)
-			ft_death(philo);
+		// if (ft_get_time() - philo->last_eat - 80 > philo->data.ttd)
+			// ft_death(philo);
 		ft_take_forks(philo);
-		ft_eating(philo);
+		if (ft_eating(philo))
+			ft_free_exit(philo, &philo->data);
 		ft_dest_forks(philo);
 		ft_sleeping(philo);
 		ft_thinking(philo);
@@ -213,11 +234,11 @@ int	main(int argc, char **argv)
 {
 	size_t i;
 	t_data data;
-	t_philo *philo;
+	t_philo philo[ft_atoi(argv[1])];
 
 	ft_parsing(argc, argv, &data);
 
-	philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
+	// philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
 
 	ft_init(philo, &data);
 
@@ -238,20 +259,6 @@ int	main(int argc, char **argv)
 			ft_error("pthread_join error\n");
 		i++;
 	}
-
-	i = 0;
-	while (i < data.nop)
-	{
-		pthread_mutex_destroy(&data.forks[i]);
-		pthread_mutex_destroy(&philo[i].last_eat_mutex);
-		pthread_mutex_destroy(&philo[i].print_msg_mutex);
-		pthread_mutex_destroy(&philo[i].notepme_mutex);
-		i++;
-	}
-
-	free(philo);
-
-
 	return (0);
 }
 
