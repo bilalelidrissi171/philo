@@ -45,11 +45,11 @@ void ft_free_exit(t_philo *philo, t_data *data)
 	i = 0;
 	while (i < data->nop)
 	{
-		pthread_mutex_destroy(&data->forks[i]);
 		pthread_mutex_destroy(&philo[i].last_eat_mutex);
 		pthread_mutex_destroy(&philo[i].print_msg_mutex);
-		pthread_mutex_destroy(&philo[i].notepme_mutex);
+		pthread_mutex_destroy(&philo[i].is_full_mutex);
 		pthread_mutex_destroy(&philo[i].is_dead_mutex);
+		pthread_mutex_destroy(&data->forks[i]);
 		i++;
 	}
 	free(data->forks);
@@ -118,11 +118,12 @@ void	ft_init(t_philo *philo, t_data *data)
 		philo[i].start = 0;
 		philo[i].last_eat = 0;
 		philo[i].is_dead = 0;
+		philo[i].is_full = 0;
 		philo[i].data = *data;
 		pthread_mutex_init(&data->forks[i], NULL);
 		pthread_mutex_init(&philo[i].last_eat_mutex, NULL);
 		pthread_mutex_init(&philo[i].print_msg_mutex, NULL);
-		pthread_mutex_init(&philo[i].notepme_mutex, NULL);
+		pthread_mutex_init(&philo[i].is_full_mutex, NULL);
 		pthread_mutex_init(&philo[i].is_dead_mutex, NULL);
 		i++;
 	}
@@ -143,7 +144,7 @@ void	ft_usleep(size_t time)
 
 	start = ft_get_time();
 	while (ft_get_time() - start < time)
-		usleep(1);
+		usleep(100);
 }
 
 
@@ -170,21 +171,24 @@ void	ft_dest_forks(t_philo *philo)
 
 int ft_eating(t_philo *philo)
 {
+	static int i = 0;
+
 	pthread_mutex_lock(&philo->last_eat_mutex);
-	pthread_mutex_lock(&philo->notepme_mutex);
-	ft_print_msg(philo, "is eating\n");
+	pthread_mutex_lock(&philo->is_full_mutex);
 	philo->last_eat = ft_get_time();
-	philo->data.notepme--;
-	if (philo->data.notepme == 0 && philo->id == philo->data.nop)
+	ft_print_msg(philo, "is eating\n");
+	i++;
+	if (i == philo->data.nop * philo->data.notepme)
 	{
-		pthread_mutex_unlock(&philo->notepme_mutex);
+		philo->is_full = 1;
+		pthread_mutex_unlock(&philo->is_full_mutex);
 		pthread_mutex_unlock(&philo->last_eat_mutex);
-		return (1);
 	}
-	ft_usleep(philo->data.tte);
-	pthread_mutex_unlock(&philo->notepme_mutex);
+	pthread_mutex_unlock(&philo->is_full_mutex);
 	pthread_mutex_unlock(&philo->last_eat_mutex);
-	ft_dest_forks(philo);
+	ft_usleep(philo->data.tte);
+	if (philo->is_full == 0)
+		ft_dest_forks(philo);
 	return (0);
 }
 
@@ -225,15 +229,32 @@ void	*ft_philo(void *arg)
 		usleep(50);
 	while (1)
 	{
-		if (ft_get_time() - philo->last_eat > philo->data.ttd)
-			ft_death(philo);
-		
+		// if (ft_get_time() - philo->last_eat > philo->data.ttd)
+		// 	ft_death(philo);
+
 
 		ft_take_forks(philo);
-		if (ft_eating(philo))
-			ft_free_exit(philo, &philo->data);
+		ft_eating(philo);
 		ft_sleeping(philo);
 		ft_thinking(philo);
+	}
+	return (NULL);
+}
+
+void *ft_check_is_full(void *arg)
+{
+	t_philo *philo;
+
+	philo = (t_philo *)arg;
+	while (1)
+	{
+		pthread_mutex_lock(&philo->is_full_mutex);
+		if (philo->is_full == 1)
+		{
+			pthread_mutex_unlock(&philo->is_full_mutex);
+			ft_free_exit(philo, &philo->data);
+		}
+		pthread_mutex_unlock(&philo->is_full_mutex);
 	}
 	return (NULL);
 }
@@ -258,6 +279,8 @@ int	main(int argc, char **argv)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
 			ft_error("pthread_create error\n");
+		if (pthread_create(&philo[i].t, NULL, &ft_check_is_full, &philo[i]))
+			ft_error("pthread_create error\n");
 		i++;
 	}
 
@@ -266,6 +289,10 @@ int	main(int argc, char **argv)
 	{
 		if (pthread_join(philo[i].t, NULL))
 			ft_error("pthread_join error\n");
+		if (pthread_join(philo[i].t, NULL))
+			ft_error("pthread_join error\n");
+
+
 		i++;
 	}
 	return (0);
