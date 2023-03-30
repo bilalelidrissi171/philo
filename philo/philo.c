@@ -177,13 +177,13 @@ int ft_eating(t_philo *philo)
 	pthread_mutex_lock(&philo->is_full_mutex);
 	philo->last_eat = ft_get_time();
 	ft_print_msg(philo, "is eating\n");
-	i++;
-	if (i == philo->data.nop * philo->data.notepme)
-	{
-		philo->is_full = 1;
-		pthread_mutex_unlock(&philo->is_full_mutex);
-		pthread_mutex_unlock(&philo->last_eat_mutex);
-	}
+	// i++;
+	// if (i == philo->data.nop * philo->data.notepme)
+	// {
+	// 	philo->is_full = 1;
+	// 	pthread_mutex_unlock(&philo->is_full_mutex);
+	// 	pthread_mutex_unlock(&philo->last_eat_mutex);
+	// }
 	pthread_mutex_unlock(&philo->is_full_mutex);
 	pthread_mutex_unlock(&philo->last_eat_mutex);
 	ft_usleep(philo->data.tte);
@@ -203,18 +203,18 @@ void ft_thinking(t_philo *philo)
 	ft_print_msg(philo, "is thinking\n");
 }
 
-void ft_death(t_philo *philo)
-{
+// void ft_death(t_philo *philo)
+// {
 
-	pthread_mutex_lock(&philo->is_dead_mutex);
-	if (philo->is_dead == 0)
-	{
-		philo->is_dead = 1;
-		ft_print_msg(philo, "died\n");
-	}
-	pthread_mutex_unlock(&philo->is_dead_mutex);
-	ft_free_exit(philo, &philo->data);
-}
+// 	pthread_mutex_lock(&philo->is_dead_mutex);
+// 	if (philo->is_dead == 0)
+// 	{
+// 		philo->is_dead = 1;
+// 		ft_print_msg(philo, "died\n");
+// 	}
+// 	pthread_mutex_unlock(&philo->is_dead_mutex);
+// 	ft_free_exit(philo, &philo->data);
+// }
 
 
 
@@ -241,24 +241,6 @@ void	*ft_philo(void *arg)
 	return (NULL);
 }
 
-void *ft_check_is_full(void *arg)
-{
-	t_philo *philo;
-
-	philo = (t_philo *)arg;
-	while (1)
-	{
-		pthread_mutex_lock(&philo->is_full_mutex);
-		if (philo->is_full == 1)
-		{
-			pthread_mutex_unlock(&philo->is_full_mutex);
-			ft_free_exit(philo, &philo->data);
-		}
-		pthread_mutex_unlock(&philo->is_full_mutex);
-	}
-	return (NULL);
-}
-
 
 int	main(int argc, char **argv)
 {
@@ -279,8 +261,6 @@ int	main(int argc, char **argv)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
 			ft_error("pthread_create error\n");
-		if (pthread_create(&philo[i].t, NULL, &ft_check_is_full, &philo[i]))
-			ft_error("pthread_create error\n");
 		i++;
 	}
 
@@ -289,10 +269,6 @@ int	main(int argc, char **argv)
 	{
 		if (pthread_join(philo[i].t, NULL))
 			ft_error("pthread_join error\n");
-		if (pthread_join(philo[i].t, NULL))
-			ft_error("pthread_join error\n");
-
-
 		i++;
 	}
 	return (0);
