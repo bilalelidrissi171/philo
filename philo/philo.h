@@ -33,7 +33,7 @@ typedef struct s_philo
 	pthread_mutex_t last_eat_mutex; // eat
 	pthread_mutex_t notepme_mutex; // number of time each philosopher must eat
 	pthread_mutex_t print_msg_mutex; // print message
-	pthread_mutex_t *is_dead_mutex; // is the philosopher dead
+	pthread_mutex_t is_dead_mutex; // is the philosopher dead
 }				t_philo;
 
 
