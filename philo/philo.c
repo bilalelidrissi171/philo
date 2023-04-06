@@ -47,7 +47,6 @@ void ft_free_exit(t_philo *philo, t_data *data)
 	{
 		pthread_mutex_destroy(&philo[i].last_eat_mutex);
 		pthread_mutex_destroy(&philo[i].print_msg_mutex);
-		pthread_mutex_destroy(&philo[i].is_full_mutex);
 		pthread_mutex_destroy(&philo[i].is_dead_mutex);
 		pthread_mutex_destroy(&data->forks[i]);
 		i++;
@@ -92,6 +91,7 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	data->tts = ft_atoi(argv[3]);
 	data->ttd = ft_atoi(argv[4]);
 	data->notepme = 0;
+	data->notephe = 0;
 	if (argc == 6)
 	{
 		data->notepme = ft_atoi(argv[5]);
@@ -114,17 +114,16 @@ void	ft_init(t_philo *philo, t_data *data)
 	i = 0;
 	while (i < data->nop)
 	{
+		pthread_mutex_init(&data->forks[i], NULL);
+		pthread_mutex_init(&data->notephe_mutex, NULL);
+		pthread_mutex_init(&philo[i].last_eat_mutex, NULL);
+		pthread_mutex_init(&philo[i].print_msg_mutex, NULL);
+		pthread_mutex_init(&philo[i].is_dead_mutex, NULL);
 		philo[i].id = i + 1;
 		philo[i].start = 0;
 		philo[i].last_eat = 0;
 		philo[i].is_dead = 0;
-		philo[i].is_full = 0;
 		philo[i].data = *data;
-		pthread_mutex_init(&data->forks[i], NULL);
-		pthread_mutex_init(&philo[i].last_eat_mutex, NULL);
-		pthread_mutex_init(&philo[i].print_msg_mutex, NULL);
-		pthread_mutex_init(&philo[i].is_full_mutex, NULL);
-		pthread_mutex_init(&philo[i].is_dead_mutex, NULL);
 		i++;
 	}
 
@@ -171,13 +170,23 @@ void	ft_dest_forks(t_philo *philo)
 
 void ft_eating(t_philo *philo)
 {
-	static int i = 0;
 
 	pthread_mutex_lock(&philo->last_eat_mutex);
+	philo->data.notephe++;
 	philo->last_eat = ft_get_time();
 	ft_print_msg(philo, "is eating\n");
-	pthread_mutex_unlock(&philo->last_eat_mutex);
+	if (philo->data.notepme)
+	{
+		if (philo->data.notephe == philo->data.notepme)
+		{
+			ft_dest_forks(philo);
+			pthread_mutex_unlock(&philo->data.notephe_mutex);
+			exit(0);
+		}
+	}
 	ft_usleep(philo->data.tte);
+	pthread_mutex_unlock(&philo->last_eat_mutex);
+
 }
 
 void ft_sleeping(t_philo *philo)
@@ -204,6 +213,7 @@ void	*ft_philo(void *arg)
 	{
 		ft_take_forks(philo);
 		ft_eating(philo);
+		ft_dest_forks(philo);
 		ft_sleeping(philo);
 		ft_thinking(philo);
 	}
