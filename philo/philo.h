@@ -18,6 +18,8 @@ typedef struct s_data
 	int ttd; // time to die
 	int notepme; // number of time each philosopher must eat
 	int notephe; // number of time each philosopher has eaten
+	int is_dead; // is the philosopher dead
+	pthread_mutex_t is_dead_mutex; // is the philosopher dead
 	pthread_mutex_t *forks; // forks
 
 }				t_data;
@@ -30,11 +32,9 @@ typedef struct s_philo
 	int id; // id of the philosopher
 	int start; // time when the philosopher started
 	int last_eat; // time when the philosopher last ate
-	int is_dead; // is the philosopher dead
 	t_data data; // data
 	pthread_mutex_t last_eat_mutex; // eat
 	pthread_mutex_t print_msg_mutex; // print message
-	pthread_mutex_t is_dead_mutex; // is the philosopher dead
 }				t_philo;
 
 
