@@ -115,7 +115,6 @@ void	ft_init(t_philo *philo, t_data *data)
 	while (i < data->nop)
 	{
 		pthread_mutex_init(&data->forks[i], NULL);
-		pthread_mutex_init(&data->notephe_mutex, NULL);
 		pthread_mutex_init(&philo[i].last_eat_mutex, NULL);
 		pthread_mutex_init(&philo[i].print_msg_mutex, NULL);
 		pthread_mutex_init(&philo[i].is_dead_mutex, NULL);
@@ -137,11 +136,8 @@ int	ft_get_time(void)
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
-void	ft_usleep(size_t time)
+void	ft_usleep(int time, int start)
 {
-	size_t start;
-
-	start = ft_get_time();
 	while (ft_get_time() - start < time)
 		usleep(100);
 }
@@ -172,19 +168,18 @@ void ft_eating(t_philo *philo)
 {
 
 	pthread_mutex_lock(&philo->last_eat_mutex);
-	philo->data.notephe++;
 	philo->last_eat = ft_get_time();
+	philo->data.notephe++;
 	ft_print_msg(philo, "is eating\n");
 	if (philo->data.notepme)
 	{
 		if (philo->data.notephe == philo->data.notepme)
 		{
 			ft_dest_forks(philo);
-			pthread_mutex_unlock(&philo->data.notephe_mutex);
 			exit(0);
 		}
 	}
-	ft_usleep(philo->data.tte);
+	ft_usleep(philo->data.tte, ft_get_time());
 	pthread_mutex_unlock(&philo->last_eat_mutex);
 
 }
@@ -192,7 +187,7 @@ void ft_eating(t_philo *philo)
 void ft_sleeping(t_philo *philo)
 {
 	ft_print_msg(philo, "is sleeping\n");
-	ft_usleep(philo->data.tts);
+	ft_usleep(philo->data.tts, ft_get_time());
 }
 
 void ft_thinking(t_philo *philo)
@@ -206,9 +201,9 @@ void	*ft_philo(void *arg)
 
 	philo = (t_philo *)arg;
 	philo->start = ft_get_time();
-	philo->last_eat = ft_get_time();
+	philo->last_eat = philo->start;
 	if (philo->id % 2 == 0)
-		usleep(50);
+		usleep(100);
 	while (1)
 	{
 		ft_take_forks(philo);

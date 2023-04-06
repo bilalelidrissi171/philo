@@ -18,7 +18,6 @@ typedef struct s_data
 	int ttd; // time to die
 	int notepme; // number of time each philosopher must eat
 	int notephe; // number of time each philosopher has eaten
-	pthread_mutex_t notephe_mutex; // number of time each philosopher has eaten
 	pthread_mutex_t *forks; // forks
 
 }				t_data;
