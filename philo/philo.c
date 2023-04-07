@@ -12,7 +12,6 @@ size_t	ft_strlen(char *str)
 
 void	ft_error(char *str)
 {
-	write(2, "Error: ", 7);
 	write(2, str, ft_strlen(str));
 	exit(1);
 }
@@ -31,10 +30,10 @@ void	*ft_calloc(size_t count, size_t size)
 			return (NULL);
 	p = malloc(count * size);
 	if (!p)
-		ft_error("malloc failed\n");
+		ft_error("Error: malloc failed\n");
 	memset(p, 0, count * size);
 	if (!p)
-		ft_error("memset failed\n");
+		ft_error("Error: memset failed\n");
 	return (p);
 }
 
@@ -51,16 +50,16 @@ size_t	ft_atoi(char *str)
 		i++;
 	if (str[i] == '+' || str[i] == '-')
 		if (str[i++] == '-')
-			ft_error("negative number\n");
+			ft_error("Error: negative number\n");
 	while (str[i] >= '0' && str[i] <= '9')
 	{
 		temp = res;
 		res = (res * 10) + (str[i++] - 48);
 		if (temp != res / 10)
-			ft_error("overflow\n");
+			ft_error("Error: overflow\n");
 	}
 	if (str[i])
-		ft_error("not a number\n");
+		ft_error("Error: not a number\n");
 	return (res);
 }
 
@@ -68,7 +67,7 @@ size_t	ft_atoi(char *str)
 void	ft_parsing(int argc, char **argv, t_data *data)
 {
 	if (argc < 5 && argc > 6)
-		ft_error("wrong number of arguments\n");
+		ft_error("Error: wrong number of arguments\n");
 	data->nop = ft_atoi(argv[1]);
 	data->tte = ft_atoi(argv[2]);
 	data->tts = ft_atoi(argv[3]);
@@ -79,14 +78,14 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	{
 		data->notepme = ft_atoi(argv[5]);
 		if (data->notepme == 0)
-			ft_error("number of time each philosopher must eat must be at least 1\n");
+			ft_error("Error: number of time each philosopher must eat must be at least 1\n");
 	}
 	if (data->nop == 0)
 		exit(0);
 	if (data->nop > 200)
-		ft_error("number of philosophers must be at most 200\n");
+		ft_error("Error: number of philosophers must be at most 200\n");
 	if (data->tte < 60 || data->tts < 60 || data->ttd < 60)
-		ft_error("time must be at least 60ms\n");
+		ft_error("Error: time must be at least 60ms\n");
 }
 
 int	ft_get_time(void)
@@ -198,7 +197,7 @@ void	*ft_philo(void *arg)
 	return (NULL);
 }
 
-void ft_free(t_philo *philo, t_data *data)
+void ft_free(t_philo *philo, t_data *data, char *str)
 {
 	size_t i;
 	size_t j;
@@ -218,8 +217,8 @@ void ft_free(t_philo *philo, t_data *data)
 		pthread_detach(philo[i++].t);
 	free(data->forks);
 	free(philo);
+	ft_error(str);
 }
-
 
 
 
@@ -230,36 +229,23 @@ int	main(int argc, char **argv)
 	t_philo *philo;
 
 	ft_parsing(argc, argv, &data);
-
 	philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
-
 	ft_init(philo, &data);
-
 	i = 0;
 	while (i < data.nop)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
-		{
-			ft_free(philo, &data);
-			ft_error("pthread_create error\n");
-		}
+			ft_free(philo, &data, "Error: pthread_create error\n");
 		i++;
 	}
-
 	i = 0;
 	while (i < data.nop)
 	{
 		if (pthread_join(philo[i].t, NULL))
-		{
-			ft_free(philo, &data);
-			ft_error("pthread_join error\n");
-		}
+			ft_free(philo, &data, "Error: pthread_join error\n");
 		i++;
 	}
-
-	ft_free(philo, &data);
-
-
+	ft_free(philo, &data, "");
 	return (0);
 }
 
