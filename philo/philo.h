@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/04/07 15:43:29 by bel-idri          #+#    #+#             */
+/*   Updated: 2023/04/07 15:43:30 by bel-idri         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PHILO_H
 # define PHILO_H
 
@@ -12,13 +24,13 @@
 typedef struct s_data
 {
 
-	int nop; // number of philosophers
-	int tte; // time to eat
-	int tts; // time to sleep
-	int ttd; // time to die
-	int notepme; // number of time each philosopher must eat
-	int notephe; // number of time each philosopher has eaten
-	pthread_mutex_t *forks; // forks
+	int nop;
+	int tte;
+	int tts;
+	int ttd;
+	int notepme;
+	int notephe;
+	pthread_mutex_t *forks;
 
 }				t_data;
 
@@ -26,12 +38,12 @@ typedef struct s_philo
 {
 	pthread_t t;
 	pthread_t d;
-	int id; // id of the philosopher
-	int start; // time when the philosopher started
-	int last_eat; // time when the philosopher last ate
-	t_data data; // data
-	pthread_mutex_t last_eat_mutex; // eat
-	pthread_mutex_t print_msg_mutex; // print message
+	int id;
+	int start;
+	int last_eat;
+	t_data data;
+	pthread_mutex_t last_eat_mutex;
+	pthread_mutex_t print_msg_mutex;
 }				t_philo;
 
 
@@ -40,4 +52,4 @@ typedef struct s_philo
 
 
 // a.out // saug
-// last par = 0 // what I have to do
+// 1 parametre

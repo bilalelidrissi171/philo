@@ -1,8 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
+/*   Updated: 2023/04/07 15:44:12 by bel-idri         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 size_t	ft_strlen(char *str)
 {
-	size_t i;
+	size_t	i;
 
 	i = 0;
 	while (str[i])
@@ -37,7 +49,6 @@ void	*ft_calloc(size_t count, size_t size)
 	return (p);
 }
 
-
 size_t	ft_atoi(char *str)
 {
 	int	i;
@@ -50,7 +61,9 @@ size_t	ft_atoi(char *str)
 		i++;
 	if (str[i] == '+' || str[i] == '-')
 		if (str[i++] == '-')
-			ft_error("Error: negative number\n");
+			ft_error("Error: negative number or not a number\n");
+	if (!str[i])
+		ft_error("Error: not a number\n");
 	while (str[i] >= '0' && str[i] <= '9')
 	{
 		temp = res;
@@ -63,10 +76,9 @@ size_t	ft_atoi(char *str)
 	return (res);
 }
 
-
 void	ft_parsing(int argc, char **argv, t_data *data)
 {
-	if (argc < 5 && argc > 6)
+	if (argc < 5 || argc > 6)
 		ft_error("Error: wrong number of arguments\n");
 	data->nop = ft_atoi(argv[1]);
 	data->tte = ft_atoi(argv[2]);
@@ -78,10 +90,11 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	{
 		data->notepme = ft_atoi(argv[5]);
 		if (data->notepme == 0)
-			ft_error("Error: number of time each philosopher must eat must be at least 1\n");
+			ft_error("Error: number of time each philosopher must eat \
+						must be at least 1\n");
 	}
 	if (data->nop == 0)
-		exit(0);
+		ft_error("Error: number of philosophers must be at least 1\n");
 	if (data->nop > 200)
 		ft_error("Error: number of philosophers must be at most 200\n");
 	if (data->tte < 60 || data->tts < 60 || data->ttd < 60)
@@ -90,7 +103,7 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 
 int	ft_get_time(void)
 {
-	struct timeval tv;
+	struct timeval	tv;
 
 	gettimeofday(&tv, NULL);
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
@@ -98,7 +111,7 @@ int	ft_get_time(void)
 
 void	ft_init(t_philo *philo, t_data *data)
 {
-	size_t i;
+	size_t	i;
 
 	data->forks = ft_calloc(sizeof(pthread_mutex_t), data->nop);
 	i = 0;
@@ -113,9 +126,7 @@ void	ft_init(t_philo *philo, t_data *data)
 		philo[i].data = *data;
 		i++;
 	}
-
 }
-
 
 void	ft_usleep(int time, int start)
 {
@@ -123,8 +134,7 @@ void	ft_usleep(int time, int start)
 		usleep(100);
 }
 
-
-void ft_print_msg(t_philo *philo, char *str)
+void	ft_print_msg(t_philo *philo, char *str)
 {
 	pthread_mutex_lock(&philo->print_msg_mutex);
 	printf("%d %d %s", ft_get_time() - philo->start, philo->id, str);
@@ -145,9 +155,8 @@ void	ft_dest_forks(t_philo *philo)
 	pthread_mutex_unlock(&philo->data.forks[philo->id % philo->data.nop]);
 }
 
-int ft_eating(t_philo *philo)
+int	ft_eating(t_philo *philo)
 {
-
 	pthread_mutex_lock(&philo->last_eat_mutex);
 	philo->last_eat = ft_get_time();
 	philo->data.notephe++;
@@ -156,29 +165,27 @@ int ft_eating(t_philo *philo)
 	{
 		pthread_mutex_unlock(&philo->last_eat_mutex);
 		ft_dest_forks(philo);
-		return 1;
+		return (1);
 	}
-
 	ft_usleep(philo->data.tte, ft_get_time());
 	pthread_mutex_unlock(&philo->last_eat_mutex);
-	return 0;
-
+	return (0);
 }
 
-void ft_sleeping(t_philo *philo)
+void	ft_sleeping(t_philo *philo)
 {
 	ft_print_msg(philo, "is sleeping\n");
 	ft_usleep(philo->data.tts, ft_get_time());
 }
 
-void ft_thinking(t_philo *philo)
+void	ft_thinking(t_philo *philo)
 {
 	ft_print_msg(philo, "is thinking\n");
 }
 
 void	*ft_philo(void *arg)
 {
-	t_philo *philo;
+	t_philo	*philo;
 
 	philo = (t_philo *)arg;
 	philo->start = ft_get_time();
@@ -197,10 +204,10 @@ void	*ft_philo(void *arg)
 	return (NULL);
 }
 
-void ft_free(t_philo *philo, t_data *data, char *str)
+void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 {
-	size_t i;
-	size_t j;
+	size_t	i;
+	size_t	j;
 
 	i = 0;
 	while (i < data->nop)
@@ -217,36 +224,31 @@ void ft_free(t_philo *philo, t_data *data, char *str)
 		pthread_detach(philo[i++].t);
 	free(data->forks);
 	free(philo);
-	ft_error(str);
+	if (x)
+		ft_error(str);
 }
-
-
 
 int	main(int argc, char **argv)
 {
-	int i;
-	t_data data;
-	t_philo *philo;
+	int		i;
+	t_data	data;
+	t_philo	*philo;
 
 	ft_parsing(argc, argv, &data);
 	philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
 	ft_init(philo, &data);
-	i = 0;
-	while (i < data.nop)
+	i = -1;
+	while (++i < data.nop)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
-			ft_free(philo, &data, "Error: pthread_create error\n");
-		i++;
+			ft_free(philo, &data, 1, "Error: pthread_create error\n");
 	}
-	i = 0;
-	while (i < data.nop)
+	i = -1;
+	while (++i < data.nop)
 	{
 		if (pthread_join(philo[i].t, NULL))
-			ft_free(philo, &data, "Error: pthread_join error\n");
-		i++;
+			ft_free(philo, &data, 1, "Error: pthread_join error\n");
 	}
-	ft_free(philo, &data, "");
+	ft_free(philo, &data, 0, NULL);
 	return (0);
 }
-
-
