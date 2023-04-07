@@ -165,7 +165,7 @@ void	ft_dest_forks(t_philo *philo)
 	pthread_mutex_unlock(&philo->data.forks[philo->id % philo->data.nop]);
 }
 
-void ft_eating(t_philo *philo)
+int ft_eating(t_philo *philo)
 {
 
 	pthread_mutex_lock(&philo->last_eat_mutex);
@@ -176,11 +176,12 @@ void ft_eating(t_philo *philo)
 	{
 		pthread_mutex_unlock(&philo->last_eat_mutex);
 		ft_dest_forks(philo);
-		exit(0);
+		return 1;
 	}
 
 	ft_usleep(philo->data.tte, ft_get_time());
 	pthread_mutex_unlock(&philo->last_eat_mutex);
+	return 0;
 
 }
 
@@ -207,7 +208,8 @@ void	*ft_philo(void *arg)
 	while (1)
 	{
 		ft_take_forks(philo);
-		ft_eating(philo);
+		if (ft_eating(philo))
+			return (NULL);
 		ft_dest_forks(philo);
 		ft_sleeping(philo);
 		ft_thinking(philo);
@@ -246,14 +248,6 @@ int	main(int argc, char **argv)
 		i++;
 	}
 
-	if (data.notepme)
-	{
-			printf("ana hena\n");
-		if (data.notephe == data.notepme)
-		{
-			exit(0);
-		}
-	}
 
 	return (0);
 }
