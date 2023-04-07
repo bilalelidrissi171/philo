@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/07 15:44:12 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/07 15:49:44 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,8 +90,8 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	{
 		data->notepme = ft_atoi(argv[5]);
 		if (data->notepme == 0)
-			ft_error("Error: number of time each philosopher must eat \
-						must be at least 1\n");
+			ft_error("Error: \
+number of time each philosopher must eat must be at least 1\n");
 	}
 	if (data->nop == 0)
 		ft_error("Error: number of philosophers must be at least 1\n");
