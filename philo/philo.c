@@ -38,23 +38,6 @@ void	*ft_calloc(size_t count, size_t size)
 	return (p);
 }
 
-void ft_free_exit(t_philo *philo, t_data *data)
-{
-	size_t i;
-
-	i = 0;
-	while (i < data->nop)
-	{
-		pthread_mutex_destroy(&philo[i].last_eat_mutex);
-		pthread_mutex_destroy(&philo[i].print_msg_mutex);
-		pthread_mutex_destroy(&philo[i].data.is_dead_mutex);
-		pthread_mutex_destroy(&data->forks[i]);
-		i++;
-	}
-	free(data->forks);
-	exit(0);
-}
-
 
 size_t	ft_atoi(char *str)
 {
@@ -92,7 +75,6 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	data->ttd = ft_atoi(argv[4]);
 	data->notepme = 0;
 	data->notephe = 0;
-	data->is_dead = 0;
 	if (argc == 6)
 	{
 		data->notepme = ft_atoi(argv[5]);
@@ -126,7 +108,6 @@ void	ft_init(t_philo *philo, t_data *data)
 		pthread_mutex_init(&data->forks[i], NULL);
 		pthread_mutex_init(&philo[i].last_eat_mutex, NULL);
 		pthread_mutex_init(&philo[i].print_msg_mutex, NULL);
-		pthread_mutex_init(&philo[i].data.is_dead_mutex, NULL);
 		philo[i].id = i + 1;
 		philo[i].start = 0;
 		philo[i].last_eat = 0;
@@ -221,12 +202,13 @@ void	*ft_philo(void *arg)
 int	main(int argc, char **argv)
 {
 	size_t i;
+	size_t j;
 	t_data data;
-	t_philo philo[1064];
+	t_philo *philo;
 
 	ft_parsing(argc, argv, &data);
 
-	// philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
+	philo = (t_philo *)ft_calloc(sizeof(t_philo), data.nop);
 
 	ft_init(philo, &data);
 
@@ -238,8 +220,6 @@ int	main(int argc, char **argv)
 		i++;
 	}
 
-
-
 	i = 0;
 	while (i < data.nop)
 	{
@@ -247,6 +227,21 @@ int	main(int argc, char **argv)
 			ft_error("pthread_join error\n");
 		i++;
 	}
+
+	i = 0;
+	while (i < data.nop)
+	{
+		j = 0;
+		while (j < data.nop)
+			pthread_mutex_destroy(&philo[i].data.forks[j++]);
+		pthread_mutex_destroy(&philo[i].last_eat_mutex);
+		pthread_mutex_destroy(&philo[i].print_msg_mutex);
+		i++;
+	}
+	free(data.forks);
+	free(philo);
+
+
 
 
 	return (0);
