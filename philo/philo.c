@@ -172,6 +172,12 @@ void ft_eating(t_philo *philo)
 	philo->last_eat = ft_get_time();
 	philo->data.notephe++;
 	ft_print_msg(philo, "is eating\n");
+	if (philo->data.notepme && philo->data.notephe == philo->data.notepme)
+	{
+		pthread_mutex_unlock(&philo->last_eat_mutex);
+		ft_dest_forks(philo);
+		exit(0);
+	}
 
 	ft_usleep(philo->data.tte, ft_get_time());
 	pthread_mutex_unlock(&philo->last_eat_mutex);
