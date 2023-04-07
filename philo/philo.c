@@ -198,11 +198,34 @@ void	*ft_philo(void *arg)
 	return (NULL);
 }
 
-
-int	main(int argc, char **argv)
+void ft_free(t_philo *philo, t_data *data)
 {
 	size_t i;
 	size_t j;
+
+	i = 0;
+	while (i < data->nop)
+	{
+		j = 0;
+		while (j < data->nop)
+			pthread_mutex_destroy(&philo[i].data.forks[j++]);
+		pthread_mutex_destroy(&philo[i].last_eat_mutex);
+		pthread_mutex_destroy(&philo[i].print_msg_mutex);
+		i++;
+	}
+	i = 0;
+	while (i < data->nop)
+		pthread_detach(philo[i++].t);
+	free(data->forks);
+	free(philo);
+}
+
+
+
+
+int	main(int argc, char **argv)
+{
+	int i;
 	t_data data;
 	t_philo *philo;
 
@@ -216,7 +239,10 @@ int	main(int argc, char **argv)
 	while (i < data.nop)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
+		{
+			ft_free(philo, &data);
 			ft_error("pthread_create error\n");
+		}
 		i++;
 	}
 
@@ -224,24 +250,14 @@ int	main(int argc, char **argv)
 	while (i < data.nop)
 	{
 		if (pthread_join(philo[i].t, NULL))
+		{
+			ft_free(philo, &data);
 			ft_error("pthread_join error\n");
+		}
 		i++;
 	}
 
-	i = 0;
-	while (i < data.nop)
-	{
-		j = 0;
-		while (j < data.nop)
-			pthread_mutex_destroy(&philo[i].data.forks[j++]);
-		pthread_mutex_destroy(&philo[i].last_eat_mutex);
-		pthread_mutex_destroy(&philo[i].print_msg_mutex);
-		i++;
-	}
-	free(data.forks);
-	free(philo);
-
-
+	ft_free(philo, &data);
 
 
 	return (0);

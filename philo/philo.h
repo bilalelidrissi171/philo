@@ -25,7 +25,6 @@ typedef struct s_data
 typedef struct s_philo
 {
 	pthread_t t;
-	pthread_t f;
 	pthread_t d;
 	int id; // id of the philosopher
 	int start; // time when the philosopher started
