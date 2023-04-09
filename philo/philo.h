@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:29 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/07 15:43:30 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/07 16:01:57 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ typedef struct s_data
 	int ttd;
 	int notepme;
 	int notephe;
+	int is_dead;
+	pthread_mutex_t is_dead_mutex;
 	pthread_mutex_t *forks;
 
 }				t_data;

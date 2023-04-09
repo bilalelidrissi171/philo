@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/07 15:49:44 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/07 17:09:22 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,11 +81,12 @@ void	ft_parsing(int argc, char **argv, t_data *data)
 	if (argc < 5 || argc > 6)
 		ft_error("Error: wrong number of arguments\n");
 	data->nop = ft_atoi(argv[1]);
-	data->tte = ft_atoi(argv[2]);
-	data->tts = ft_atoi(argv[3]);
-	data->ttd = ft_atoi(argv[4]);
+	data->ttd = ft_atoi(argv[2]);
+	data->tte = ft_atoi(argv[3]);
+	data->tts = ft_atoi(argv[4]);
 	data->notepme = 0;
 	data->notephe = 0;
+	data->is_dead = 0;
 	if (argc == 6)
 	{
 		data->notepme = ft_atoi(argv[5]);
@@ -118,11 +119,12 @@ void	ft_init(t_philo *philo, t_data *data)
 	while (i < data->nop)
 	{
 		pthread_mutex_init(&data->forks[i], NULL);
+		pthread_mutex_init(&data->is_dead_mutex, NULL);
 		pthread_mutex_init(&philo[i].last_eat_mutex, NULL);
 		pthread_mutex_init(&philo[i].print_msg_mutex, NULL);
 		philo[i].id = i + 1;
-		philo[i].start = 0;
-		philo[i].last_eat = 0;
+		philo[i].start = ft_get_time();
+		philo[i].last_eat = philo[i].start;
 		philo[i].data = *data;
 		i++;
 	}
@@ -188,12 +190,21 @@ void	*ft_philo(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	philo->start = ft_get_time();
-	philo->last_eat = philo->start;
 	if (philo->id % 2 == 0)
 		usleep(100);
 	while (1)
 	{
+		if (ft_get_time() - philo->last_eat > philo->data.ttd)
+		{
+			printf ("ft_get_time() (%d) - philo->last_eat (%d) (%d) > philo->data.ttd (%d)\n", ft_get_time(), philo->last_eat, ft_get_time() - philo->last_eat, philo->data.ttd);
+			pthread_mutex_lock(&philo->data.is_dead_mutex);
+			philo->data.is_dead = 1;
+			ft_print_msg(philo, "died\n");
+			pthread_mutex_unlock(&philo->data.is_dead_mutex);
+			return (NULL);
+		}
+		if (philo->data.is_dead)
+			return (NULL);
 		ft_take_forks(philo);
 		if (ft_eating(philo))
 			return (NULL);
@@ -217,6 +228,7 @@ void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 			pthread_mutex_destroy(&philo[i].data.forks[j++]);
 		pthread_mutex_destroy(&philo[i].last_eat_mutex);
 		pthread_mutex_destroy(&philo[i].print_msg_mutex);
+		pthread_mutex_destroy(&philo[i].data.is_dead_mutex);
 		i++;
 	}
 	i = 0;
