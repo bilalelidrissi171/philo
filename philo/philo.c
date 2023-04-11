@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 16:34:52 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 16:44:34 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,8 +78,7 @@ size_t	ft_atoi(char *str)
 
 void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 {
-	size_t	i;
-	size_t	j;
+	int	i;
 
 	i = 0;
 	pthread_mutex_destroy(&data->print_msg_mutex);
@@ -132,7 +131,7 @@ int	ft_get_time(void)
 
 void	ft_init(t_philo *philo, t_data *data)
 {
-	size_t	i;
+	int	i;
 
 	data->forks = ft_calloc(sizeof(pthread_mutex_t), data->nop);
 	i = 0;
