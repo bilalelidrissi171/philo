@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 16:18:46 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 16:34:52 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,17 +188,10 @@ int	ft_eating(t_philo *philo)
 		ft_error("Error: mutex lock failed\n");
 	philo->last_eat = ft_get_time();
 	philo->data->notephe++;
-	ft_print_msg(philo, "is eating\n");
-	if (philo->data->notepme && philo->data->notephe == philo->data->notepme)
-	{
-		if (pthread_mutex_unlock(&philo->last_eat_mutex))
-			ft_error("Error: mutex unlock failed\n");
-		ft_dest_forks(philo);
-		return (1);
-	}
-	ft_usleep(philo->data->tte, ft_get_time());
 	if (pthread_mutex_unlock(&philo->last_eat_mutex))
 		ft_error("Error: mutex unlock failed\n");
+	ft_print_msg(philo, "is eating\n");
+	ft_usleep(philo->data->tte, ft_get_time());
 	return (0);
 }
 
@@ -218,6 +211,10 @@ void	*ft_philo(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
+	pthread_mutex_lock(&philo->last_eat_mutex);
+	philo->start = ft_get_time();
+	philo->last_eat = philo->start;
+	pthread_mutex_unlock(&philo->last_eat_mutex);
 	if (philo->id % 2 == 0)
 		usleep(100);
 	while (1)
@@ -261,6 +258,20 @@ int	ft_check_death(t_philo	*philo)
 	return (0);
 }
 
+int	ft_check_notephe(t_data *data)
+{
+	while (1)
+	{
+		if (data->notephe == data->nop * data->notepme && data->notepme)
+		{
+			pthread_mutex_lock(&data->print_msg_mutex);
+			return (1);
+		}
+		usleep(200);
+	}
+	return (0);
+}
+
 int	main(int argc, char **argv)
 {
 	int		i;
@@ -278,10 +289,14 @@ int	main(int argc, char **argv)
 	}
 	if (ft_check_death(philo))
 	{
-
 		ft_free(philo, &data, 0, NULL);
 		exit (0);
 	}
+	// if (ft_check_notephe(&data))
+	// {
+	// 	ft_free(philo, &data, 0, NULL);
+	// 	exit (0);
+	// }
 	i = -1;
 	while (++i < data.nop)
 	{
