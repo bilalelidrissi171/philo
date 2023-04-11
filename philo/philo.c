@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 14:05:39 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 14:07:42 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,6 @@ void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 			pthread_mutex_destroy(&philo[i].data.forks[j++]);
 		pthread_mutex_destroy(&philo[i].last_eat_mutex);
 		pthread_mutex_destroy(&philo[i].print_msg_mutex);
-		pthread_mutex_destroy(&philo[i].data.is_dead_mutex);
 		i++;
 	}
 	i = 0;
@@ -245,7 +244,11 @@ void	*ft_check_death(void *arg)
 		{
 			pthread_mutex_lock(&philo->data.is_dead_mutex);
 			if (!philo->data.is_dead)
+			{
+				philo->data.is_dead = 1;
+				pthread_mutex_unlock(&philo->data.is_dead_mutex);
 				ft_print_msg(philo, "died\n");
+			}
 			pthread_mutex_unlock(&philo->data.is_dead_mutex);
 			return (NULL);
 		}
