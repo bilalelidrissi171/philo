@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 14:07:42 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 14:16:48 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,10 +246,14 @@ void	*ft_check_death(void *arg)
 			if (!philo->data.is_dead)
 			{
 				philo->data.is_dead = 1;
-				pthread_mutex_unlock(&philo->data.is_dead_mutex);
 				ft_print_msg(philo, "died\n");
+				pthread_mutex_unlock(&philo->data.is_dead_mutex);
+				pthread_mutex_unlock(&philo->last_eat_mutex);
+				pthread_mutex_lock(&philo->print_msg_mutex);
+				return (NULL);
 			}
 			pthread_mutex_unlock(&philo->data.is_dead_mutex);
+			pthread_mutex_unlock(&philo->last_eat_mutex);
 			return (NULL);
 		}
 		pthread_mutex_unlock(&philo->last_eat_mutex);
