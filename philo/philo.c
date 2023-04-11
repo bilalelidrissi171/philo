@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 21:31:37 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 21:34:56 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,21 +271,26 @@ void	*ft_philo(void *arg)
 	return (NULL);
 }
 
+int ft_check_eat(t_data *data)
+{
+	mutex_lock(&data->notephe_mutex);
+	if (data->notephe >= data->nop * data->notepme && data->notepme)
+	{
+		mutex_unlock(&data->notephe_mutex);
+		mutex_lock(&data->print_msg_mutex);
+		return (1);
+	}
+	mutex_unlock(&data->notephe_mutex);
+	return (0);
+}
 int	ft_check_death(t_philo	*philo, t_data *data)
 {
 	int	i;
 
-	i = 0;
 	while (1)
 	{
-		mutex_lock(&data->notephe_mutex);
-		if (data->notephe >= data->nop * data->notepme && data->notepme)
-		{
-			mutex_unlock(&data->notephe_mutex);
-			mutex_lock(&data->print_msg_mutex);
+		if (ft_check_eat(data))
 			return (1);
-		}
-		mutex_unlock(&data->notephe_mutex);
 		i = 0;
 		while (i < philo->data->nop)
 		{
