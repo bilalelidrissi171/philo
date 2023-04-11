@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 21:37:14 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 23:26:45 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,18 +112,13 @@ void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 
 	i = 0;
 	mutex_unlock(&data->print_msg_mutex);
-	mutex_unlock(&data->notephe_mutex);
 	mutex_destroy(&data->print_msg_mutex);
 	mutex_destroy(&data->notephe_mutex);
-	while (i < data->nop)
-	{
-		mutex_unlock(&data->forks[i]);
-		mutex_unlock(&philo[i++].last_eat_mutex);
-	}
 	i = 0;
 	while (i < data->nop)
 	{
-		mutex_destroy(&data->forks[i]);
+		// mutex_unlock(&data->forks[i]);
+		// mutex_destroy(&data->forks[i]);
 		mutex_destroy(&philo[i++].last_eat_mutex);
 	}
 	i = 0;
@@ -217,17 +212,7 @@ void	ft_dest_forks(t_philo *philo)
 	mutex_unlock(&philo->data->forks[philo->id % philo->data->nop]);
 }
 
-int	ft_check_notephe(t_data *data)
-{
-	mutex_lock(&data->notephe_mutex);
-	if (data->notephe >= data->nop * data->notepme && data->notepme)
-	{
-		mutex_unlock(&data->notephe_mutex);
-		return (1);
-	}
-	mutex_unlock(&data->notephe_mutex);
-	return (0);
-}
+
 
 void	ft_eating(t_philo *philo)
 {
@@ -273,7 +258,6 @@ void	*ft_philo(void *arg)
 
 int	ft_check_eat(t_data *data)
 {
-	mutex_lock(&data->notephe_mutex);
 	if (data->notephe >= data->nop * data->notepme && data->notepme)
 	{
 		mutex_unlock(&data->notephe_mutex);
