@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 13:55:47 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 14:05:39 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,12 +219,38 @@ void	*ft_philo(void *arg)
 		usleep(100);
 	while (1)
 	{
+		if (philo->data.is_dead)
+			return (NULL);
 		ft_take_forks(philo);
 		if (ft_eating(philo))
 			return (NULL);
 		ft_dest_forks(philo);
 		ft_sleeping(philo);
 		ft_thinking(philo);
+	}
+	return (NULL);
+}
+
+void	*ft_check_death(void *arg)
+{
+	t_philo	*philo;
+
+	philo = (t_philo *)arg;
+	while (1)
+	{
+		if (philo->data.notepme && philo->data.notephe == philo->data.notepme)
+			return (NULL);
+		pthread_mutex_lock(&philo->last_eat_mutex);
+		if (ft_get_time() - philo->last_eat > philo->data.ttd)
+		{
+			pthread_mutex_lock(&philo->data.is_dead_mutex);
+			if (!philo->data.is_dead)
+				ft_print_msg(philo, "died\n");
+			pthread_mutex_unlock(&philo->data.is_dead_mutex);
+			return (NULL);
+		}
+		pthread_mutex_unlock(&philo->last_eat_mutex);
+		usleep(100);
 	}
 	return (NULL);
 }
@@ -243,6 +269,8 @@ int	main(int argc, char **argv)
 	while (++i < data.nop)
 	{
 		if (pthread_create(&philo[i].t, NULL, &ft_philo, &philo[i]))
+			ft_free(philo, &data, 1, "Error: pthread_create error\n");
+		if (pthread_create(&philo[i].t, NULL, &ft_check_death, &philo[i]))
 			ft_free(philo, &data, 1, "Error: pthread_create error\n");
 	}
 	i = -1;
