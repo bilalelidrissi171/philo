@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:29 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 16:16:09 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 17:56:36 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ typedef struct s_data
 	int notepme;
 	int notephe;
 	pthread_mutex_t print_msg_mutex;
+	pthread_mutex_t notephe_mutex;
 	pthread_mutex_t *forks;
 
 }				t_data;

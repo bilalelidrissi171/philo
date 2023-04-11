@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 17:24:03 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 17:57:04 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,7 @@ void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 
 	i = 0;
 	pthread_mutex_destroy(&data->print_msg_mutex);
+	pthread_mutex_destroy(&data->notephe_mutex);
 	while (i < data->nop)
 		pthread_mutex_destroy(&data->forks[i++]);
 	i = 0;
@@ -136,6 +137,7 @@ void	ft_init(t_philo *philo, t_data *data)
 	data->forks = ft_calloc(sizeof(pthread_mutex_t), data->nop);
 	i = 0;
 	pthread_mutex_init(&data->print_msg_mutex, NULL);
+	pthread_mutex_init(&data->notephe_mutex, NULL);
 	while (i < data->nop)
 	{
 		pthread_mutex_init(&data->forks[i], NULL);
@@ -183,15 +185,17 @@ void	ft_dest_forks(t_philo *philo)
 
 int	ft_check_notephe(t_data *data)
 {
-
+	if (pthread_mutex_lock(&data->notephe_mutex))
+		ft_error("Error: mutex lock failed-++-\n");
 	if (data->notephe >= data->nop * data->notepme && data->notepme)
 	{
-		// if (pthread_mutex_lock(&data->print_msg_mutex))
-		// 	ft_error("Error: mutex lock failed\n");
+		if (pthread_mutex_unlock(&data->notephe_mutex))
+			ft_error("Error: mutex unlock failed\n");
 		return (1);
 	}
+	if (pthread_mutex_unlock(&data->notephe_mutex))
+		ft_error("Error: mutex unlock failed\n");
 	return (0);
-
 }
 
 void	ft_eating(t_philo *philo)
@@ -199,10 +203,14 @@ void	ft_eating(t_philo *philo)
 	if (pthread_mutex_lock(&philo->last_eat_mutex))
 		ft_error("Error: mutex lock failed\n");
 	philo->last_eat = ft_get_time();
-	philo->data->notephe++;
-	ft_print_msg(philo, "is eating\n");
 	if (pthread_mutex_unlock(&philo->last_eat_mutex))
 		ft_error("Error: mutex unlock failed\n");
+	if (pthread_mutex_lock(&philo->data->notephe_mutex))
+		ft_error("Error: mutex lock failed\n");
+	philo->data->notephe++;
+	if (pthread_mutex_unlock(&philo->data->notephe_mutex))
+		ft_error("Error: mutex unlock failed\n");
+	ft_print_msg(philo, "is eating\n");
 	ft_usleep(philo->data->tte, ft_get_time());
 	// return (0);
 }
@@ -223,10 +231,6 @@ void	*ft_philo(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	pthread_mutex_lock(&philo->last_eat_mutex);
-	philo->start = ft_get_time();
-	philo->last_eat = philo->start;
-	pthread_mutex_unlock(&philo->last_eat_mutex);
 	if (philo->id % 2 == 0)
 		usleep(100);
 	while (1)
@@ -236,7 +240,6 @@ void	*ft_philo(void *arg)
 		ft_take_forks(philo);
 		if (ft_check_notephe(philo->data))
 			return (NULL);
-
 		ft_eating(philo);
 		if (ft_check_notephe(philo->data))
 			return (NULL);
@@ -260,8 +263,16 @@ int	ft_check_death(t_philo	*philo, t_data *data)
 	i = 0;
 	while (1)
 	{
+		if (pthread_mutex_lock(&data->notephe_mutex))
+			ft_error("Error: mutex lock failed\n");
 		if (data->notephe >= data->nop * data->notepme && data->notepme)
+		{
+			if (pthread_mutex_unlock(&data->notephe_mutex))
+				ft_error("Error: mutex unlock failed\n");
 			return (0);
+		}
+		if (pthread_mutex_unlock(&data->notephe_mutex))
+			ft_error("Error: mutex unlock failed\n");
 		i = 0;
 		while (i < philo->data->nop)
 		{
@@ -272,7 +283,6 @@ int	ft_check_death(t_philo	*philo, t_data *data)
 				ft_print_msg(&philo[i], "died\n");
 				if (pthread_mutex_unlock(&philo[i].last_eat_mutex))
 					ft_error("Error: mutex unlock failed\n");
-				pthread_mutex_lock(&philo->data->print_msg_mutex);
 				return (1);
 			}
 			if (pthread_mutex_unlock(&philo[i].last_eat_mutex))
