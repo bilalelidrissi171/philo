@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 21:34:56 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 21:37:14 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,7 @@ void	mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 		ft_error("Error: pthread_mutex_init failed\n");
 }
 
-void detach(pthread_t t)
+void	detach(pthread_t t)
 {
 	if (pthread_detach(t))
 		ft_error("Error: pthread_detach failed\n");
@@ -271,7 +271,7 @@ void	*ft_philo(void *arg)
 	return (NULL);
 }
 
-int ft_check_eat(t_data *data)
+int	ft_check_eat(t_data *data)
 {
 	mutex_lock(&data->notephe_mutex);
 	if (data->notephe >= data->nop * data->notepme && data->notepme)
@@ -283,7 +283,8 @@ int ft_check_eat(t_data *data)
 	mutex_unlock(&data->notephe_mutex);
 	return (0);
 }
-int	ft_check_death(t_philo	*philo, t_data *data)
+
+int	ft_check_death(t_philo *philo, t_data *data)
 {
 	int	i;
 
@@ -337,6 +338,5 @@ int	main(int argc, char **argv)
 		if (pthread_join(philo[i].t, NULL))
 			ft_free(philo, &data, 1, "Error: pthread_join error\n");
 	}
-	ft_free(philo, &data, 0, NULL);
-	return (0);
+	return (ft_free(philo, &data, 0, NULL), 0);
 }
