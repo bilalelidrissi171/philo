@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 21:27:12 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 21:31:37 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void	mutex_unlock(pthread_mutex_t *mutex)
 void	mutex_lock(pthread_mutex_t *mutex)
 {
 	if (pthread_mutex_lock(mutex))
-		printf("Error: pthread_mutex_lock failed\n");
+		ft_error("Error: pthread_mutex_lock failed\n");
 }
 
 void	mutex_destroy(pthread_mutex_t *mutex)
@@ -100,10 +100,10 @@ void	mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 		ft_error("Error: pthread_mutex_init failed\n");
 }
 
-void	ft_dest_forks(t_philo *philo)
+void detach(pthread_t t)
 {
-	mutex_unlock(&philo->data->forks[philo->id - 1]);
-	mutex_unlock(&philo->data->forks[philo->id % philo->data->nop]);
+	if (pthread_detach(t))
+		ft_error("Error: pthread_detach failed\n");
 }
 
 void	ft_free(t_philo *philo, t_data *data, int x, char *str)
@@ -128,8 +128,7 @@ void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 	}
 	i = 0;
 	while (i < data->nop)
-		if (pthread_detach(philo[i++].t))
-			ft_error("Error: pthread_detach failed\n");
+		detach(philo[i++].t);
 	free(data->forks);
 	free(philo);
 	if (x)
@@ -210,6 +209,12 @@ void	ft_take_forks(t_philo *philo)
 	ft_print_msg(philo, "has taken a fork\n");
 	mutex_lock(&philo->data->forks[philo->id % philo->data->nop]);
 	ft_print_msg(philo, "has taken a fork\n");
+}
+
+void	ft_dest_forks(t_philo *philo)
+{
+	mutex_unlock(&philo->data->forks[philo->id - 1]);
+	mutex_unlock(&philo->data->forks[philo->id % philo->data->nop]);
 }
 
 int	ft_check_notephe(t_data *data)
