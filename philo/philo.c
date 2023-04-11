@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 18:43:15 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/11 21:22:55 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,38 +79,53 @@ size_t	ft_atoi(char *str)
 void mutex_unlock(pthread_mutex_t *mutex)
 {
 	if (pthread_mutex_unlock(mutex))
-		ft_error("Error: mutex_unlock failed\n");
+		ft_error("Error: pthread_mutex_unlock failed\n");
 }
 
 void mutex_lock(pthread_mutex_t *mutex)
 {
 	if (pthread_mutex_lock(mutex))
-		ft_error("Error: mutex_lock failed\n");
+		printf("Error: pthread_mutex_lock failed\n");
 }
 
 void mutex_destroy(pthread_mutex_t *mutex)
 {
 	if (pthread_mutex_destroy(mutex))
-		ft_error("Error: mutex_destroy failed\n");
+		ft_error("Error: pthread_mutex_destroy failed\n");
 }
 
 void mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 {
 	if (pthread_mutex_init(mutex, attr))
-		ft_error("Error: mutex_init failed\n");
+		ft_error("Error: pthread_mutex_init failed\n");
+}
+
+void	ft_dest_forks(t_philo *philo)
+{
+	mutex_unlock(&philo->data->forks[philo->id - 1]);
+	mutex_unlock(&philo->data->forks[philo->id % philo->data->nop]);
 }
 
 void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 {
 	int	i;
 
+	i = 0;
+	mutex_unlock(&data->print_msg_mutex);
+	mutex_unlock(&data->notephe_mutex);
 	mutex_destroy(&data->print_msg_mutex);
 	mutex_destroy(&data->notephe_mutex);
 	while (i < data->nop)
-		mutex_destroy(&data->forks[i++]);
+	{
+		mutex_unlock(&data->forks[i]);
+		mutex_unlock(&philo[i++].last_eat_mutex);
+	}
 	i = 0;
 	while (i < data->nop)
+	{
+		mutex_destroy(&data->forks[i]);
 		mutex_destroy(&philo[i++].last_eat_mutex);
+	}
 	i = 0;
 	while (i < data->nop)
 		if (pthread_detach(philo[i++].t))
@@ -197,12 +212,6 @@ void	ft_take_forks(t_philo *philo)
 	mutex_lock(&philo->data->forks[philo->id % philo->data->nop]);	ft_print_msg(philo, "has taken a fork\n");
 }
 
-void	ft_dest_forks(t_philo *philo)
-{
-	mutex_unlock(&philo->data->forks[philo->id - 1]);
-	mutex_unlock(&philo->data->forks[philo->id % philo->data->nop]);
-
-}
 
 int	ft_check_notephe(t_data *data)
 {
@@ -271,7 +280,6 @@ int	ft_check_death(t_philo	*philo, t_data *data)
 		if (data->notephe >= data->nop * data->notepme && data->notepme)
 		{
 			mutex_unlock(&data->notephe_mutex);
-
 			mutex_lock(&data->print_msg_mutex);
 				return (1);
 		}
@@ -290,7 +298,6 @@ int	ft_check_death(t_philo	*philo, t_data *data)
 				return (1);
 			}
 			mutex_unlock(&philo[i].last_eat_mutex);
-
 			i++;
 		}
 		if (usleep(200))
