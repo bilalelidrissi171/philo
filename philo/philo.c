@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/12 18:39:54 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/12 21:41:14 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,5 +38,4 @@ int	main(int argc, char **argv)
 		if (pthread_join(philo[i].t, NULL))
 			ft_free(philo, &data, 1, "Error: pthread_join error\n");
 	}
-	return (ft_free(philo, &data, 0, NULL), 0);
 }
