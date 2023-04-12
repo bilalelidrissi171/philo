@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/11 23:26:45 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/12 18:16:26 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,11 +88,6 @@ void	mutex_lock(pthread_mutex_t *mutex)
 		ft_error("Error: pthread_mutex_lock failed\n");
 }
 
-void	mutex_destroy(pthread_mutex_t *mutex)
-{
-	if (pthread_mutex_destroy(mutex))
-		ft_error("Error: pthread_mutex_destroy failed\n");
-}
 
 void	mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 {
@@ -110,16 +105,14 @@ void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 {
 	int	i;
 
-	i = 0;
-	mutex_unlock(&data->print_msg_mutex);
-	mutex_destroy(&data->print_msg_mutex);
-	mutex_destroy(&data->notephe_mutex);
+	pthread_mutex_destroy(&data->print_msg_mutex);
+	pthread_mutex_destroy(&data->notephe_mutex);
+
 	i = 0;
 	while (i < data->nop)
 	{
-		// mutex_unlock(&data->forks[i]);
-		// mutex_destroy(&data->forks[i]);
-		mutex_destroy(&philo[i++].last_eat_mutex);
+		pthread_mutex_destroy(&data->forks[i]);
+		pthread_mutex_destroy(&philo[i++].last_eat_mutex);
 	}
 	i = 0;
 	while (i < data->nop)
@@ -258,6 +251,7 @@ void	*ft_philo(void *arg)
 
 int	ft_check_eat(t_data *data)
 {
+	mutex_lock(&data->notephe_mutex);
 	if (data->notephe >= data->nop * data->notepme && data->notepme)
 	{
 		mutex_unlock(&data->notephe_mutex);
@@ -314,7 +308,7 @@ int	main(int argc, char **argv)
 	if (ft_check_death(philo, &data))
 	{
 		ft_free(philo, &data, 0, NULL);
-		exit (0);
+		exit(0);
 	}
 	i = -1;
 	while (++i < data.nop)
