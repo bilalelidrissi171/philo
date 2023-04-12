@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/12 18:17:54 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/12 18:28:13 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,6 @@ void	mutex_lock(pthread_mutex_t *mutex)
 		ft_error("Error: pthread_mutex_lock failed\n");
 }
 
-
 void	mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr)
 {
 	if (pthread_mutex_init(mutex, attr))
@@ -107,7 +106,6 @@ void	ft_free(t_philo *philo, t_data *data, int x, char *str)
 
 	pthread_mutex_destroy(&data->print_msg_mutex);
 	pthread_mutex_destroy(&data->notephe_mutex);
-
 	i = 0;
 	while (i < data->nop)
 	{
@@ -205,8 +203,6 @@ void	ft_dest_forks(t_philo *philo)
 	mutex_unlock(&philo->data->forks[philo->id % philo->data->nop]);
 }
 
-
-
 void	ft_eating(t_philo *philo)
 {
 	mutex_lock(&philo->last_eat_mutex);
@@ -258,8 +254,6 @@ int	ft_check_eat(t_data *data)
 		mutex_lock(&data->print_msg_mutex);
 		return (1);
 	}
-
-	
 	mutex_unlock(&data->notephe_mutex);
 	return (0);
 }
