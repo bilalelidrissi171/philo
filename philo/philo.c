@@ -6,7 +6,7 @@
 /*   By: bel-idri <bel-idri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 15:43:25 by bel-idri          #+#    #+#             */
-/*   Updated: 2023/04/12 18:16:26 by bel-idri         ###   ########.fr       */
+/*   Updated: 2023/04/12 18:17:54 by bel-idri         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,6 +258,8 @@ int	ft_check_eat(t_data *data)
 		mutex_lock(&data->print_msg_mutex);
 		return (1);
 	}
+
+	
 	mutex_unlock(&data->notephe_mutex);
 	return (0);
 }
